@@ -1,35 +1,35 @@
-//8. Write an OpenMP program to show how thread private clause works. 
+//Write an OpenMP program to show how thread private clause works
+
+#include <stdio.h>
 #include <omp.h>
-#include<stdio.h>
+#include <stdlib.h>
 
-int a, b, i, tid;
-float x;
+#define NUM_THREADS 4
 
-#pragma omp threadprivate(a, x)
+int x,y,idx;
 
-main () {
-
-/* Explicitly turn off dynamic threads */
-omp_set_dynamic(0);
-printf("1st Parallel Region:\n");
-#pragma omp parallel private(b,tid)
+int main()
 {
-tid = omp_get_thread_num();
-a = tid;
-b = tid;
-x = 1.1 * tid +1.0;
-printf("Thread %d: a,b,x= %d %d %f\n",tid,a,b,x);
-} /* end of parallel section */
+	omp_set_num_threads(NUM_THREADS);
 
-printf("************************************\n");
-printf("Master thread doing serial work here\n");
-printf("************************************\n");
+	#pragma omp threadprivate(x)
 
-printf("2nd Parallel Region:\n");
-#pragma omp parallel private(tid)
-{
-tid = omp_get_thread_num();
-printf("Thread %d: a,b,x= %d %d %f\n",tid,a,b,x);
-} /* end of parallel section */
+	printf("Entering Private Section-I \n");
 
+	#pragma omp parallel private(idx,y)
+	{
+		idx = omp_get_thread_num();
+		x = idx;
+		y = 10;
+		printf("Thread-%d \n Private : %d \t ThreadPrivate : %d\n", idx ,y,x);
+	}
+
+	printf("Entering Private Section-II \n");
+
+	#pragma omp parallel private(idx,y)
+	{
+		idx = omp_get_thread_num();
+		y = 100;
+		printf("Thread-%d \n Private : %d \t ThreadPrivate : %d\n", idx ,y,x);
+	}
 }
