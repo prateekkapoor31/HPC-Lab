@@ -1,47 +1,31 @@
-//9. Write an OpenMP program to show how first private clause works.(Factorial program) 
+// Write an OpenMP program to show how first private clause works.(Factorial
+// program)
+
+
 #include <stdio.h>
-#include <malloc.h>
 #include <omp.h>
+#include <stdlib.h>
 
-long long factorial(long n)
-{
-long long i,out;
-out = 1;
-for (i=1; i<n+1; i++) out *= i;
-return(out);
-}
+#define N 10
+#define NUM_THREADS 2
 
-int main(int argc, char **argv)
+int main()
 {
-int i,j,threads;
-long long *x;
-long long n=12;
+	int fact[N],i,acc=1;
+	fact[0] = 1;
 
-/* Set number of threads equal to argv[1] if present */
-if (argc > 1)
-{
-threads = atoi(argv[1]);
-if (omp_get_dynamic())
-{
-omp_set_dynamic(0);
-printf("called omp_set_dynamic(0)\n");
-}
-omp_set_num_threads(threads);
-}
-printf("%d threads\n",omp_get_max_threads());
+	omp_set_num_threads(NUM_THREADS);
 
-x = (long long *) malloc(n * sizeof(long));
-for (i=0;i<n;i++) x[i]=factorial(i);
-j=0;
-/* Is the output the same if the following line is commented out? */
-#pragma omp parallel for firstprivate(x,j)
-for (i=1; i<n; i++)
-{
-j += i;
-x[i] = j*x[i-1];
-}
-for (i=0; i<n; i++)
-printf("factorial(%2d)=%14lld x[%2d]=%14lld\n",i,factorial(i),i,x[i]);
-return 0;
+	#pragma omp prallel shared(fact)
+	{
+		#pragma omp parallel for firstprivate(acc) 
+		for(i=1;i<N;i++)
+		{
+			acc = fact[i-1] * i;
+			fact[i] = acc;
+		}
+	}
 
+	for(i=1;i<N;i++)
+		printf("%d\n",fact[i]);
 }
