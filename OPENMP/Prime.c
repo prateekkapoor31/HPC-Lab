@@ -1,68 +1,42 @@
-//11. Write an OpenMP program to find prime numbers (split)
+// Write an OpenMP program to find prime numbers (split)
+
 #include <stdio.h>
 #include <omp.h>
-#define N 100000000
-#define TRUE 1
+#include <stdlib.h>
+
+#define N 100
+#define NUM_THREADS 4
 #define FALSE 0
+#define TRUE 1
 
-int main(int argc, char **argv )
+int main()
 {
-char host[80];
-int *a;
-int i, k, threads, pcount;
-double t1, t2;
-int found;
+	int isPrime[N+1] ,i,j;
 
-/* Set number of threads equal to argv[1] if present */
-if (argc > 1)
-{
-threads = atoi(argv[1]);
-if (omp_get_dynamic())
-{
-omp_set_dynamic(0);
-printf("called omp_set_dynamic(0)\n");
-}
-omp_set_num_threads(threads);
-}
-printf("%d threads max\n",omp_get_max_threads());
+	for(j=0;j<=N;j++)
+		isPrime[j] = TRUE;
 
-a = (int *) malloc((N+1) * sizeof(int));
-// 1. create a list of natural numbers 2, 3, 4, ... none of which is marked.
-for (i=2;i<=N;i++) a[i] = 1;
-// 2. Set k = 2, the first unmarked number on the list.
-k = 2;
+	isPrime[0] = isPrime[1] = FALSE;
 
-t1 = omp_get_wtime();
-// 3. Repeat
-#pragma omp parallel firstprivate(k) private(i,found)
-while (k*k <= N)
-{
-// a. Mark all multiples of k between k^2 and N
-#pragma omp for
+	omp_set_num_threads(NUM_THREADS);
 
-for (i=k*k; i<=N; i+=k) a[i] = 0;
-// b. Find the smallest number greater than k that is unmarked
-// and set k to this new value until k^2 > N
-found = FALSE;
-for (i=k+1;!found;i++)
-{
-if (a[i]){ k = i; found = TRUE; }
-}
+	i = 2; // first prime number
 
-}
-t2 = omp_get_wtime();
-printf("%.2f seconds\n",t2-t1);
+	while(i*i <= N )
+	{
+		if(isPrime[i])
+		{
+			#pragma omp parallel for
+			for(j=i*2;j<=N;j+=i)
+			{
+				isPrime[j] = FALSE;
+			}
+		}
 
-// 4. The unmarked numbers are primes
-pcount = 0;
-for (i=2;i<=N;i++)
-{
-if( a[i] )
-{
-pcount++;
-//printf("%d\n",i);
-}
-}
-printf("%d primes between 0 and %d\n",pcount,N);
+		i++;
+	}
 
+	for(i=0;i<=N;i++)
+		if(isPrime[i])
+			printf("%d ",i);
 }
