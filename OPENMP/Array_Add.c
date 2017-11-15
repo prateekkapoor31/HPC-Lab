@@ -1,36 +1,35 @@
-//1. Write an OpenMP program to perform addition of two arrays A & B store the result in the array C
-#include <omp.h>
+/*Write an OpenMP program to perform addition of two arrays A & B store the
+result in the array C
+*/
+
 #include <stdio.h>
+#include <omp.h>
 #include <stdlib.h>
-#define CHUNKSIZE 10
+
 #define N 100
-int main (int argc, char *argv[])
+#define NUM_THREADS 4
+
+int main()
 {
-int nthreads, tid, i, chunk;
-float a[N], b[N], c[N];
+	int a[N],b[N],c[N];
+	int i;
 
-/* Some initializations */
-for (i=0; i < N; i++)
-a[i] = b[i] = i * 1.0;
-chunk = CHUNKSIZE;
+	//set number of threads
+	omp_set_num_threads(NUM_THREADS);
 
-#pragma omp parallel shared(a,b,c,nthreads,chunk) private(i,tid)
-{
-tid = omp_get_thread_num();
-if (tid == 0)
-{
-nthreads = omp_get_num_threads();
-printf("Number of threads = %d\n", nthreads);
-}
-printf("Thread %d starting...\n",tid);
+	//storing rand values
+	for(i=0;i<N;i++)
+	{
+		a[i] = rand()%20;
+		b[i] = rand()%20;
+		c[i] = 0;
+	}
 
-#pragma omp for schedule (dynamic, chunk)
-for (i=0; i<N; i++)
-{
-c[i] = a[i] + b[i];
-printf("Thread %d: c[%d]= %f\n",tid,i,c[i]);
-}
+	//adding arrays 
+	#pragma omp parallel for schedule(static)
+		for(i=0;i<N;i++)
+			c[i] = a[i] + b[i];
 
-} /* end of parallel section */
-
+	for(i=0;i<N;i++)
+		printf("%d\n",c[i]);
 }
